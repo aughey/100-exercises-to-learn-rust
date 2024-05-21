@@ -1,17 +1,35 @@
 // TODO: use `Status` as type for `Ticket::status`
 //   Adjust the signature and implementation of all other methods as necessary.
 
+use core::panic;
+
+#[derive(Debug, Copy, Clone, PartialEq)]
+enum Status {
+    ToDo,
+    InProgress,
+    Done,
+}
+
+impl TryFrom<&str> for Status {
+    type Error = &'static str;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "To-Do" => Ok(Status::ToDo),
+            "In Progress" => Ok(Status::InProgress),
+            "Done" => Ok(Status::Done),
+            _ => Err("Only `To-Do`, `In Progress`, and `Done` statuses are allowed"),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 // `derive`s are recursive: it can only derive `PartialEq` if all fields also implement `PartialEq`.
 // Same holds for `Debug`. Do what you must with `Status` to make this work.
 struct Ticket {
     title: String,
     description: String,
-    status: String,
-}
-
-enum Status {
-    // TODO: add the missing variants
+    status: Status,
 }
 
 impl Ticket {
@@ -28,9 +46,9 @@ impl Ticket {
         if description.len() > 500 {
             panic!("Description cannot be longer than 500 characters");
         }
-        if status != "To-Do" && status != "In Progress" && status != "Done" {
-            panic!("Only `To-Do`, `In Progress`, and `Done` statuses are allowed");
-        }
+        let status = Status::try_from(status.as_str())
+            .map_err(|e| panic!("{}", e))
+            .unwrap();
 
         Ticket {
             title,
@@ -47,7 +65,7 @@ impl Ticket {
         &self.description
     }
 
-    pub fn status(&self) -> &String {
+    pub fn status(&self) -> &Status {
         &self.status
     }
 }
